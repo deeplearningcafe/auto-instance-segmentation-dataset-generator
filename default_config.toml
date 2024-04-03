@@ -1,0 +1,13 @@
+output_path = "data/outputs"
+video_path = ""
+screenshots_folder = "screenshots"
+uniques_folder = "uniques"
+folder_path = ""
+
+[detector]
+config_file = "Detector/yolox/yolox_s_8x8_300e_maids.py"
+checkpoint_file = "Detector/yolox/epoch_64.pth"
+conf_threshold = 0.2
+classes = []
+
+

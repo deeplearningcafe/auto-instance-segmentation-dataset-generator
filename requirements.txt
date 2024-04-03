@@ -1,0 +1,13 @@
+--find-links https://download.pytorch.org/whl/torch_stable.html
+torch==2.1.2+cu121
+--find-links https://download.pytorch.org/whl/torch_stable.html
+torchaudio==2.1.2+cu121
+--find-links https://download.pytorch.org/whl/torch_stable.html
+torchvision==0.16.2+cu121
+transformers==4.38.2
+opencv-python==4.9.0.80
+openmim==0.3.9
+supervision==0.19.0
+segment-anything==1.0
+munch==4.0.0
+toml==0.10.2
