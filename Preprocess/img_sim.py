@@ -7,6 +7,11 @@ import shutil
 from tqdm import tqdm
 from transformers.trainer_utils import set_seed
 import json
+import gc
+
+from utils.logs import create_logger
+
+log = create_logger(__name__)
 
 set_seed(1234)
 
@@ -92,18 +97,22 @@ def remove_similar_images(image_folder, similarity_threshold=0.95, output_path:s
             copy_file(image_paths[i], output_path, index=i, text=image_name)
             embeddings_saved.append(embeddings[i])
         
+    # delete the model and release memory
+    # model will still be on cache until its place is taken by other objects so also execute the below lines
+    del clip_model
+    gc.collect()
+    torch.cuda.empty_cache()
 
 
+# output_path = "unique_images"
+# try:  
+#     # creating a folder named data 
+#     if not os.path.exists(output_path): 
+#         os.makedirs(output_path)
 
-output_path = "unique_images"
-try:  
-    # creating a folder named data 
-    if not os.path.exists(output_path): 
-        os.makedirs(output_path)
+# except OSError:
+#     print ('Error! Could not create a directory') 
 
-except OSError:
-    print ('Error! Could not create a directory') 
-
-image_folder = "e:/Data/object_dection/maids"
-remove_similar_images(image_folder, output_path=output_path)
-print(len(os.listdir(output_path)))
+# image_folder = "e:/Data/object_dection/maids"
+# remove_similar_images(image_folder, output_path=output_path)
+# print(len(os.listdir(output_path)))

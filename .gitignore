@@ -103,8 +103,6 @@ venv.bak/
 
 # mypy
 .mypy_cache/
-data/
-data
 .vscode
 .idea
 .DS_Store
@@ -114,6 +112,9 @@ data
 *.pkl.json
 *.log.json
 Detector/yolox
+data/outputs
+data/inputs/*
+!data/inputs/PUT_YOUR_VIDEOS_HERE
 
 
 # Pytorch

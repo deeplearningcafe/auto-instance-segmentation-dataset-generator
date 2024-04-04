@@ -1,5 +1,10 @@
 import cv2
 import os
+from tqdm import tqdm
+
+from utils.logs import create_logger
+
+log = create_logger(__name__)
 
 
 def get_frames(video_path, output_path, time_lapse, video_name):
@@ -21,21 +26,26 @@ def get_frames(video_path, output_path, time_lapse, video_name):
             os.makedirs(output_path)
 
     except OSError:
-        print ('Error! Could not create a directory') 
+        log.error('Error! Could not create a directory') 
 
     # open the video
     cam = cv2.VideoCapture(video_path)
 
     # read fps
     frames_per_second = cam.get(cv2.CAP_PROP_FPS)
+    totalNoFrames = cam.get(cv2.CAP_PROP_FRAME_COUNT)
+
     current_frame = 0
     count = 0
-    print("The fps of the video is:", frames_per_second)
+    log.info(f"The fps of the video is: {frames_per_second}")
     # time_lapse = int(frames_per_second/2)
-    print("The number of frames to save is: ", time_lapse)
+    log.info(f"The number of frames to save is: {time_lapse}")
+    progress_bar = iter(tqdm(range(int(totalNoFrames+1))))
+
     while True:
         # read one frame, ret = 画像取得が成功した場合の表示
         ret, frame = cam.read()
+        next(progress_bar)
 
         if ret:
             if current_frame%time_lapse == 0: 
@@ -46,9 +56,10 @@ def get_frames(video_path, output_path, time_lapse, video_name):
             current_frame += 1
 
         if not ret:
-            print("No frame")
+            log.info("No frame")
             break
     
+    # we could add here one next(progress_bar) to end the bar, test with a not so long video
     cam.release()
     cv2.destroyAllWindows()
     

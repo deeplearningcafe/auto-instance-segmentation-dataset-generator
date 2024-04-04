@@ -1,13 +1,15 @@
 output_path = "data/outputs"
-video_path = ""
+video_path = "/home/victor/projects/automatic_instance_seg/data/inputs/[UCCUSS] Akiba Meido Sensou アキバ冥途戦争 第06話 「姉妹盃に注ぐ血 赤バットの凶行」 NCED Ver. (BD 1920x1080p AVC FLAC).mkv"
 screenshots_folder = "screenshots"
 uniques_folder = "uniques"
 folder_path = ""
+similarity_threshold = 0.95
+revise_annotations = false
 
 [detector]
 config_file = "Detector/yolox/yolox_s_8x8_300e_maids.py"
 checkpoint_file = "Detector/yolox/epoch_64.pth"
-conf_threshold = 0.2
-classes = []
+conf_threshold = 0.80
+classes = ['nagomi', 'ranko', 'yumechi', 'shiipon']
 
 

@@ -13,8 +13,7 @@ Batch 2: 238'519'808, Batch 5: 338'770'432  Memory per sample: 33'416'874.666666
 
 https://github.com/roboflow/supervision/blob/develop/supervision/dataset/formats/coco.py#L100
 """
-from mmdet.apis import init_detector, inference_detector, DetInferencer
-import pathlib
+from mmdet.apis import DetInferencer
 import torch
 import supervision as sv
 from mmdet.structures import DetDataSample
@@ -23,10 +22,14 @@ import cv2
 import os
 import json
 import logging
+import gc
 
-logging.basicConfig(encoding='utf-8', level=logging.INFO, format="%(asctime)s %(levelname)-7s %(message)s")
+from utils.logs import create_logger
 
-log = logging.getLogger(__name__)
+# logging.basicConfig(encoding='utf-8', level=logging.INFO, format="%(asctime)s %(levelname)-7s %(message)s")
+
+# log = logging.getLogger(__name__)
+log = create_logger(__name__)
 
 class YoloXDetector:
     def __init__(self, config_file:str, checkpoint_file:str) -> None:
@@ -89,7 +92,7 @@ class PredictionProcessor:
             
         return annotations, images
 
-    def format_cvat(json_path:str) -> None:
+    def format_cvat(self, json_path:str) -> None:
         with open(json_path, 'r') as file:
             json_load = json.load(file)
         file.close()
@@ -198,18 +201,26 @@ def format_cvat(json_path:str) -> None:
 def create_dataset(conf):
     # Load detector and post_processor
     detector = YoloXDetector(conf.detector.config_file, conf.detector.checkpoint_file)
-    folder_name = os.path.dirname(conf.folder_path)
-    annotations_folder = os.path.join(conf.folder_path, f"{folder_name}_dataset")
+    folder_name = os.path.basename(conf.folder_path)
+    print(conf.folder_path)
+    annotations_folder = os.path.join(conf.folder_path, f"dataset")
+    print(annotations_folder)
     processor = PredictionProcessor(classes=conf.detector.classes, annotations_folder=annotations_folder)
     
     # 1. Make Predictions
     predictions = detector.predict(conf.uniques_folder, batch_size=64)
 
     # 2. Transform predictions to annotations in supervision
-    annotations, images = processor.process_predictions(predictions, conf_threshold=conf.conf_threshold)
+    annotations, images = processor.process_predictions(predictions, conf_threshold=conf.detector.conf_threshold)
     
     # 3. Export to COCO format and cvat format
     annotations_file, images_directory = processor.export_dataset_coco(images, annotations)
+    
+    # delete the model and release memory
+    # model will still be on cache until its place is taken by other objects so also execute the below lines
+    del detector
+    gc.collect()
+    torch.cuda.empty_cache()
     
     return annotations_file, images_directory
 

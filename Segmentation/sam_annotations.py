@@ -9,10 +9,11 @@ import torch
 from datetime import datetime
 from tqdm import tqdm
 import logging
+import gc
 
-logging.basicConfig(encoding='utf-8', level=logging.INFO, format="%(asctime)s %(levelname)-7s %(message)s")
+from utils.logs import create_logger
 
-log = logging.getLogger(__name__)
+log = create_logger(__name__)
 
 def segment(sam_predictor: SamPredictor, image: np.ndarray, 
             xyxy: np.ndarray) -> np.ndarray:
@@ -252,6 +253,11 @@ def segment_dataset_sam(json_path:str=None, base_path:str=None) -> None:
     with open(filename, "w") as jsonFile:
         json.dump(json_load, jsonFile)
     log.info(f"File saved with name {filename}")
+    
+    del sam
+    gc.collect()
+    torch.cuda.empty_cache()
+    
 
 if __name__ == "__main__":
     json_path = ""
