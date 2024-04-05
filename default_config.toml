@@ -5,6 +5,7 @@ uniques_folder = "uniques"
 folder_path = ""
 similarity_threshold = 0.95
 revise_annotations = false
+show_annotations = true
 
 [detector]
 config_file = "Detector/yolox/yolox_s_8x8_300e_maids.py"

@@ -6,6 +6,7 @@ from Detector.yolox_annotations import create_dataset
 from Segmentation.sam_annotations import segment_dataset_sam
 from utils.config import load_global_config
 from utils.logs import create_logger
+from utils.show_ann import get_annotations
 
 log = create_logger(__name__)
 
@@ -53,8 +54,13 @@ def main(conf):
     # (Optional) 4. Revise the annotations(cvat).
     if not conf.revise_annotations:
         # 5. Use SAM to get the masks.
-        segment_dataset_sam(annotations_file, images_directory)
+        annotation_file = segment_dataset_sam(annotations_file, images_directory)
     
+    # 6. Show annotations
+    if conf.show_annotations:
+        # annotation_file = "data/outputs/[UCCUSS] Akiba Meido Sensou アキバ冥途戦争 第06話 「姉妹盃に注ぐ血 赤バットの凶行」 NCED Ver. (BD 1920x1080p AVC FLAC)/dataset/annotations/annotations.json_updated.json"
+        # image_folder = "data/outputs/[UCCUSS] Akiba Meido Sensou アキバ冥途戦争 第06話 「姉妹盃に注ぐ血 赤バットの凶行」 NCED Ver. (BD 1920x1080p AVC FLAC)/dataset/images"
+        get_annotations(annotation_file, images_directory)
 
 if __name__ == "__main__":
     current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -63,3 +69,4 @@ if __name__ == "__main__":
 
     conf = load_global_config(conf_path)
     main(conf)
+    

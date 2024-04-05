@@ -10,6 +10,7 @@ from datetime import datetime
 from tqdm import tqdm
 import logging
 import gc
+import os
 
 from utils.logs import create_logger
 
@@ -249,7 +250,9 @@ def segment_dataset_sam(json_path:str=None, base_path:str=None) -> None:
     log.info(f"Peak memory: {torch.cuda.max_memory_allocated()*1e-9}")
     log.info(f"Time to complete: {datetime.now()-start}")
     log.info(f"Updated samples {updated_samples}")
-    filename =  f"{json_path}_updated.json"
+    anntations_file = os.path.basename(json_path)
+    anntations_filename, format = os.path.splitext(anntations_file)
+    filename =  f"{anntations_filename}_updated.json"
     with open(filename, "w") as jsonFile:
         json.dump(json_load, jsonFile)
     log.info(f"File saved with name {filename}")
@@ -258,6 +261,7 @@ def segment_dataset_sam(json_path:str=None, base_path:str=None) -> None:
     gc.collect()
     torch.cuda.empty_cache()
     
+    return filename
 
 if __name__ == "__main__":
     json_path = ""
