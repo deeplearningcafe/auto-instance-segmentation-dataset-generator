@@ -1,5 +1,5 @@
 output_path = "data/outputs"
-video_path = "/home/victor/projects/automatic_instance_seg/data/inputs/[UCCUSS] Akiba Meido Sensou アキバ冥途戦争 第06話 「姉妹盃に注ぐ血 赤バットの凶行」 NCED Ver. (BD 1920x1080p AVC FLAC).mkv"
+video_path = "YOUR-VIDEO-PATH"
 screenshots_folder = "screenshots"
 uniques_folder = "uniques"
 folder_path = ""
@@ -7,14 +7,14 @@ similarity_threshold = 0.95
 
 
 [detector]
-config_file = "Detector/yolox/yolox_s_8x8_300e_maids.py"
-checkpoint_file = "Detector/yolox/epoch_64.pth"
+config_file = "YOUR-DETECTOR-CONFIGURATION-FILE"
+checkpoint_file = "YOUR-DETECTOR-CHECKPOINT-FILE"
 conf_threshold = 0.80
-classes = ['nagomi', 'ranko', 'yumechi', 'shiipon']
+classes = ['A LIST OF YOUR DETECTOR CLASSES']
 
 [annotations]
 revise_annotations = true
 show_annotations = true
 revised = true
-annotations_file = "/home/victor/projects/automatic_instance_seg/data/outputs/[UCCUSS] Akiba Meido Sensou アキバ冥途戦争 第06話 「姉妹盃に注ぐ血 赤バットの凶行」 NCED Ver. (BD 1920x1080p AVC FLAC)/chapter6/annotations/instances_default_updated.json"
-images_directory = "/home/victor/projects/automatic_instance_seg/data/outputs/[UCCUSS] Akiba Meido Sensou アキバ冥途戦争 第06話 「姉妹盃に注ぐ血 赤バットの凶行」 NCED Ver. (BD 1920x1080p AVC FLAC)/chapter6/images"
+annotations_file = "YOUR-ANNOTATION-FILE-ONLY-IF-REVISED-ANNOTATIONS"
+images_directory = "YOUR-IMAGES-FOLDER-ONLY-IF-REVISED-ANNOTATIONS"

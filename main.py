@@ -55,7 +55,7 @@ def main(conf):
         # (Optional) 4. Revise the annotations(cvat).
     if not conf.annotations.revise_annotations or conf.annotations.revised:
         # 5. Use SAM to get the masks.
-        # conf.annotations.annotations_file = segment_dataset_sam(conf.annotations.annotations_file, conf.annotations.images_directory)
+        conf.annotations.annotations_file = segment_dataset_sam(conf.annotations.annotations_file, conf.annotations.images_directory)
     
         # 6. Show annotations
         if conf.annotations.show_annotations:
