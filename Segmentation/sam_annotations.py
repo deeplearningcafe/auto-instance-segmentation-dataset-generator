@@ -250,9 +250,10 @@ def segment_dataset_sam(json_path:str=None, base_path:str=None) -> None:
     log.info(f"Peak memory: {torch.cuda.max_memory_allocated()*1e-9}")
     log.info(f"Time to complete: {datetime.now()-start}")
     log.info(f"Updated samples {updated_samples}")
-    anntations_file = os.path.basename(json_path)
-    anntations_filename, format = os.path.splitext(anntations_file)
-    filename =  f"{anntations_filename}_updated.json"
+    annotations_file = os.path.basename(json_path)
+    annotations_folder = os.path.dirname(json_path)
+    annotations_filename, format = os.path.splitext(annotations_file)
+    filename =  f"{annotations_folder}/{annotations_filename}_updated.json"
     with open(filename, "w") as jsonFile:
         json.dump(json_load, jsonFile)
     log.info(f"File saved with name {filename}")
