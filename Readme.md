@@ -1,3 +1,5 @@
+[[Japanese](Readme_jp.md)/English]
+
 # Automatic Instance Segmentation Dataset
 This project automates the creation process of instance segmentation datasets, catering to tasks related to computer vision. The pipeline utilizes several Computer Vision models, including `Clip` for image filtering based on similarity thresholds, a `Detector (Yolox)` for Object Detection, and `Segment Anything` for generating segmentation annotations.
 
