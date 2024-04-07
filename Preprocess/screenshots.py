@@ -64,11 +64,11 @@ def get_frames(video_path, output_path, time_lapse, video_name):
     cv2.destroyAllWindows()
     
 if __name__ == '__main__':
-    video_path = r"G:\アニメ\アキバ\[UCCUSS] Akiba Meido Sensou アキバ冥途戦争 第2巻 (BD 1920x1080p AVC FLAC)\[UCCUSS] Akiba Meido Sensou アキバ冥途戦争 第05話 「赤に沈む! 三十六歳生誕祭!」 (BD 1920x1080p AVC FLAC).mkv"
-    output_path = "e:\Data\object_dection\maids"
+    video_path = r""
+    output_path = ""
     if not os.path.isdir(output_path):
         os.makedirs(output_path)
     time_lapse = 24
-    video_name = "chap_5"
+    video_name = ""
     
     get_frames(video_path, output_path, time_lapse, video_name)

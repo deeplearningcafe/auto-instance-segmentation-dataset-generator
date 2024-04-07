@@ -21,7 +21,6 @@ from tqdm import tqdm
 import cv2
 import os
 import json
-import logging
 import gc
 
 from utils.logs import create_logger
@@ -32,16 +31,35 @@ from utils.logs import create_logger
 log = create_logger(__name__)
 
 class YoloXDetector:
+    """ Yolox Detector class"""
     def __init__(self, config_file:str, checkpoint_file:str) -> None:
         self.model = self.init_model(config_file, checkpoint_file)
         
     
     def init_model(self, config_file:str, checkpoint_file:str) -> DetInferencer:
+        """Creates the model instance
+
+        Args:
+            config_file (str): the model configuration of mmdetection 
+            checkpoint_file (str): the checkpoint of the model
+
+        Returns:
+            DetInferencer: inference class
+        """
         device = 'cuda:0'
         inferencer = DetInferencer(model=config_file, weights=checkpoint_file, device=device)
         return inferencer
 
-    def predict(self, img_dir:str, batch_size:int=64,):
+    def predict(self, img_dir:str, batch_size:int=64,) -> DetDataSample:
+        """ Given a directory of images, predicts the bboxes using batched samples.
+
+        Args:
+            img_dir (str): directory of images to predict
+            batch_size (int, optional): batch size for inference. Defaults to 64.
+
+        Returns:
+            DetDataSample: object containing all the annotations
+        """
         img_files = os.listdir(img_dir)
         # we need to add the whole path to each img
         img_files = [os.path.join(img_dir, img) for img in img_files]
@@ -53,6 +71,9 @@ class YoloXDetector:
         return predictions
 
 class PredictionProcessor:
+    """ 
+    Class for processing the predictions from Detector and creates a COCO dataset
+    """
     MIN_IMAGE_AREA_PERCENTAGE = 0.002
     MAX_IMAGE_AREA_PERCENTAGE = 0.90
     APPROXIMATION_PERCENTAGE = 0.75
@@ -60,14 +81,21 @@ class PredictionProcessor:
     def __init__(self, classes:list[str], annotations_folder:str) -> None:        
         self.classes = classes
         self.images_directory = os.path.join(annotations_folder, "images")
-        # annotations_folder/annotations/annotations.json
         self.annotations_file = os.path.join(annotations_folder, "annotations")
         self.annotations_file = os.path.join(self.annotations_file, "annotations.json")
         
     
     @staticmethod
     def process_predictions(predictions:list[DetDataSample], conf_threshold:float=0.2) -> tuple[list[sv.Detections], list[str]]:
+        """Converts the predictions to supervision format and creates a dictionary with the images objects
 
+        Args:
+            predictions (list[DetDataSample]): output from the detector
+            conf_threshold (float, optional): minimum confidence of the detector to use the prediction. Defaults to 0.2.
+
+        Returns:
+            tuple[list[sv.Detections], list[str]]: annotations and images dictionaries.
+        """
         images = {}
         annotations = {}
         for pred in tqdm(predictions['predictions'], 'processing the predictions'):
@@ -93,6 +121,11 @@ class PredictionProcessor:
         return annotations, images
 
     def format_cvat(self, json_path:str) -> None:
+        """Cvat does not allow ids to start by 0 so add 1 to the ids.
+
+        Args:
+            json_path (str): annotations file from COCO dataset.
+        """
         with open(json_path, 'r') as file:
             json_load = json.load(file)
         file.close()
@@ -108,7 +141,16 @@ class PredictionProcessor:
             json.dump(json_load, jsonFile)
         log.info(f"File saved with name {json_path}")
 
-    def export_dataset_coco(self, images:str, annotations:str):
+    def export_dataset_coco(self, images:dict, annotations:dict) -> tuple[str, str]:
+        """ Exports the annotations and images from process_predictions to COCO format.
+
+        Args:
+            images (dict): images dict 
+            annotations (dict): supervision annotations 
+
+        Returns:
+            tuple[str, str]: annotations file and images directory
+        """
         dataset = sv.DetectionDataset(
             classes=self.classes,
             images=images,
@@ -143,18 +185,6 @@ def process_predictions(predictions:list[DetDataSample], conf_threshold:float=0.
         if len(keep_idx) < 1:
             # if no scores bigger than the threshold, the delete
             continue
-        # print(pred)
-        # print(keep_idx)
-        # print(pred.pred_instances.keys())
-        # for key in pred.pred_instances.keys():
-        #     print(key)
-        #     print(pred.pred_instances[key], pred.pred_instances[key][keep_idx])
-        #     pred.pred_instances[key] = pred.pred_instances[key][keep_idx]
-        
-        # images_paths.append(pred.img_path)
-        
-        # to create a dataset class using supervision we need to have dictionary with path and the image
-        # results.append(sv.Detections.from_mmdetection(pred))
 
         images[pred.img_path] = cv2.imread(pred.img_path)
         detections = sv.Detections.from_mmdetection(pred)
@@ -166,39 +196,16 @@ def process_predictions(predictions:list[DetDataSample], conf_threshold:float=0.
     return annotations, images
 
 
-def make_predictions(img_dir:str) -> dict[str, DetDataSample]:
-    img_files = os.listdir(img_dir)
-    # we need to add the whole path to each img
-    img_files = [os.path.join(img_dir, img) for img in img_files]
-    log.info(len(img_files))
+
+def create_dataset(conf) -> tuple[str, str]:
+    """Given the configuration with the images folder, it creates a COCO dataset
     
-    config_file = 'yolox_s_8x8_300e_maids.py'
-    checkpoint_file = '../../work_dirs/yolox_s_8x8_300e_maids/epoch_64.pth'
+    Args:
+        conf (_type_): configuration object
 
-    device = 'cuda:0'
-    inferencer = DetInferencer(model=config_file, weights=checkpoint_file, device=device)
-
-    predictions =  inferencer(img_files, no_save_pred=True, return_datasamples=True, print_result=False, batch_size=64,)
-    
-    return predictions
-
-def format_cvat(json_path:str) -> None:
-    with open(json_path, 'r') as file:
-        json_load = json.load(file)
-    file.close()
-    log.info(json_load.keys())
-    
-    for i in tqdm(range(len(json_load["categories"]))):
-        json_load["categories"][i]["id"] += 1
-    
-    for i in tqdm(range(len(json_load["annotations"]))):
-        json_load["annotations"][i]["category_id"] += 1
-
-    with open(json_path, "w") as jsonFile:
-        json.dump(json_load, jsonFile)
-    log.info(f"File saved with name {json_path}")
-
-def create_dataset(conf):
+    Returns:
+        tuple[str, str]: annotations file and images directory
+    """
     # Load detector and post_processor
     detector = YoloXDetector(conf.detector.config_file, conf.detector.checkpoint_file)
     folder_name = os.path.basename(conf.folder_path)
@@ -224,38 +231,3 @@ def create_dataset(conf):
     
     return annotations_file, images_directory
 
-# images_path = r"/home/victor/projects/mmdetection/dataset/maids/yolox_images_for_ann/chapter5"
-# predictions = make_predictions(images_path)
-# log.info(round(torch.cuda.max_memory_allocated() / (1024 ** 3), 2))
-# log.info(round(torch.cuda.max_memory_reserved() / (1024 ** 3), 2))
-
-# annotations, images = process_predictions(predictions=predictions, conf_threshold=0.65)
-
-# log.info(len(images))
-# metainfo = {
-#     'classes': ('nagomi', 'ranko', 'yumechi', 'shiipon'),
-
-# }
-# IMAGES_DIRECTORY = f"yolox_annotations/chapter5/images"
-# ANNOTATIONS_FILE = f"yolox_annotations/chapter5/annotations.json"
-
-
-# MIN_IMAGE_AREA_PERCENTAGE = 0.002
-# MAX_IMAGE_AREA_PERCENTAGE = 0.90
-# APPROXIMATION_PERCENTAGE = 0.75
-
-# updated the classes_to_coco_categories method in supervision/dataset/formats/coco.py to start counting from 1 so that label ids are from 1 to n
-# we need to update the annotations I think it would be the best approach, because the annotations still start by 0
-# dataset = sv.DetectionDataset(
-#     classes=metainfo['classes'],
-#     images=images,
-#     annotations=annotations
-# ).as_coco(
-#     images_directory_path=IMAGES_DIRECTORY,
-#     annotations_path=ANNOTATIONS_FILE,
-#     min_image_area_percentage=MIN_IMAGE_AREA_PERCENTAGE,
-#     max_image_area_percentage=MAX_IMAGE_AREA_PERCENTAGE,
-#     approximation_percentage=APPROXIMATION_PERCENTAGE
-# )
-
-# format_cvat(ANNOTATIONS_FILE)

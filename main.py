@@ -30,12 +30,6 @@ def main(conf):
                 video_name=filename)
         
         # 2. Filter similarity
-        # if not os.path.exists(conf.image_folder):
-        #     raise ValueError(
-        #         f"The annotation file at {conf.image_folder} does not exists"
-        #     )
-        # images should be outputed to the output_path directory
-        # output_path_unique = os.path.join(OUTPUT_PATH, OUTPUT_UNIQUE)
         # we can directly update the config instead of creating new variables
         conf.uniques_folder = os.path.join(conf.folder_path, conf.uniques_folder)
         log.info(conf.uniques_folder)
@@ -55,13 +49,11 @@ def main(conf):
         # (Optional) 4. Revise the annotations(cvat).
     if not conf.annotations.revise_annotations or conf.annotations.revised:
         # 5. Use SAM to get the masks.
-        conf.annotations.annotations_file = segment_dataset_sam(conf.annotations.annotations_file, conf.annotations.images_directory)
+        # conf.annotations.annotations_file = segment_dataset_sam(conf.annotations.annotations_file, conf.annotations.images_directory)
     
         # 6. Show annotations
         if conf.annotations.show_annotations:
-            # annotation_file = "data/outputs/[UCCUSS] Akiba Meido Sensou アキバ冥途戦争 第06話 「姉妹盃に注ぐ血 赤バットの凶行」 NCED Ver. (BD 1920x1080p AVC FLAC)/dataset/annotations/annotations.json_updated.json"
-            # image_folder = "data/outputs/[UCCUSS] Akiba Meido Sensou アキバ冥途戦争 第06話 「姉妹盃に注ぐ血 赤バットの凶行」 NCED Ver. (BD 1920x1080p AVC FLAC)/dataset/images"
-            get_annotations(conf.annotations.annotations_file, conf.annotations.images_directory)
+            get_annotations(conf.annotations.annotations_file, conf.annotations.images_directory, conf.annotations.save_plots)
 
 if __name__ == "__main__":
     current_dir = os.path.dirname(os.path.abspath(__file__))

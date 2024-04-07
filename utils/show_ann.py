@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import json
 import supervision as sv
+import os
 
 from Segmentation.sam_annotations import convert_wh_2_xy, load_img
 from utils.logs import create_logger
@@ -21,24 +22,25 @@ def show_mask(mask, ax, random_color=False):
 def show_box(box, ax):
     x0, y0 = box[0], box[1]
     w, h = box[2] - box[0], box[3] - box[1]
-    ax.add_patch(plt.Rectangle((x0, y0), w, h, edgecolor='green', facecolor=(0,0,0,0), lw=2))    
+    ax.add_patch(plt.Rectangle((x0, y0), w, h, edgecolor='green', facecolor=(0,0,0,0), lw=2))
 
-def get_annotations(json_path:str=None, image_folder:str=None):
+def get_annotations(json_path:str=None, image_folder:str=None, save_plot:bool=False):
+    # open annotations
     with open(json_path, 'r') as file:
         json_load = json.load(file)
     file.close()
     
+    # loop all the annotations
     for i in range(len(json_load["annotations"])):
+        # loop all images looking for the image of the actual annotation
         img_id = json_load["annotations"][i]["image_id"]
         for j in range(len(json_load["images"])):
             if img_id == json_load["images"][j]["id"]:
                 img_name = json_load["images"][j]["file_name"]
-                # bbox = convert_wh_2_xy(json_load["annotations"][i]["bbox"])
                 bbox = json_load["annotations"][i]["bbox"]
                 bbox = np.array(bbox)
                 image = load_img(f"{image_folder}/{img_name}")
                 masks = json_load["annotations"][i]["segmentation"]
-                # print(len(masks))
                 
                 # convert masks to [x1, y1], [x2, y2]
                 
@@ -48,8 +50,9 @@ def get_annotations(json_path:str=None, image_folder:str=None):
                 log.info(f"Number of polygons {len(masks)}")
                 
                 masks = [sv.polygon_to_mask(p,(1980, 1080)) for p in masks]
-                # print(masks[0])
-                plot_sam(image, masks, bbox)
+                
+                index = str(i).zfill(4)
+                plot_sam(image, masks, bbox, save_plot, index)
             
             continue
         
@@ -59,18 +62,21 @@ def get_annotations(json_path:str=None, image_folder:str=None):
         
             
 
-def plot_sam(image, masks, input_box):
+def plot_sam(image, masks, input_box, save_plot:bool=False, index:int=0):
     plt.figure(figsize=(10,5))
     plt.imshow(image)
-    # show_anns(masks)
+    # plot all the masks, there are several polygons in the same annotation
     for mask in masks:
         show_mask(mask, plt.gca())
     show_box(input_box, plt.gca())
     plt.axis('off')
-    # plt.savefig("outputs/sam/segmentation_sam_bbox.png")
+    if save_plot:
+        outputs_path = "data/outputs/sam"
+        os.makedirs(outputs_path, exist_ok=True)
+        plt.savefig(f"{outputs_path}/segmentation_sam_bbox_{index}.png")
     plt.show()
 
 if __name__ == "__main__":
-    annotation_file = "data/outputs/[UCCUSS] Akiba Meido Sensou アキバ冥途戦争 第06話 「姉妹盃に注ぐ血 赤バットの凶行」 NCED Ver. (BD 1920x1080p AVC FLAC)/dataset/annotations/annotations.json_updated.json"
-    image_folder = "data/outputs/[UCCUSS] Akiba Meido Sensou アキバ冥途戦争 第06話 「姉妹盃に注ぐ血 赤バットの凶行」 NCED Ver. (BD 1920x1080p AVC FLAC)/dataset/images"
+    annotation_file = ""
+    image_folder = ""
     get_annotations(annotation_file, image_folder)
